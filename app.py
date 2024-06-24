@@ -6,12 +6,17 @@ import dash_bootstrap_components as dbc
 # Leer el archivo de Excel
 df = pd.read_excel('full_piv.xlsx')
 
-# Obtener los valores únicos de la columna 'DB' para el filtro
-unique_db = df['DB'].unique()
+# Renombramos la columna "DB" a "CLIENTE"
+df.rename(columns={'DB': 'CLIENTE'}, inplace=True)
+
+# Obtener los valores únicos de la columna 'CLIENTE' para el filtro
+unique_db = df['CLIENTE'].unique()
 columns = df.columns
 
 # Filtrar las columnas numéricas
-numeric_columns = df.select_dtypes(include=['number']).columns
+#numeric_columns = df.select_dtypes(include=['number']).columns
+# filtrar solo la columna "CANTIDAD"
+numeric_columns = ['CANTIDAD']
 
 # Inicializar la aplicación Dash con Bootstrap
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
@@ -28,9 +33,9 @@ app.layout = dbc.Container(
                         html.Hr(),
                         dbc.Nav(
                             [
-                                dbc.NavLink("Home", href="#", active="exact"),
-                                dbc.NavLink("Analytics", href="#", active="exact"),
-                                dbc.NavLink("Reports", href="#", active="exact"),
+                                # dbc.NavLink("Home", href="#", active="exact"),
+                                # dbc.NavLink("Analytics", href="#", active="exact"),
+                                # dbc.NavLink("Reports", href="#", active="exact"),
                             ],
                             vertical=True,
                             pills=True,
@@ -46,7 +51,7 @@ app.layout = dbc.Container(
                                 dcc.Dropdown(
                                     id='db-filter',
                                     options=[{'label': db, 'value': db} for db in unique_db],
-                                    placeholder='Select a DB',
+                                    placeholder='Select a CLIENTE',
                                     multi=True,
                                     style={'marginBottom': '20px', 'fontSize': '14px'}
                                 ),
@@ -154,8 +159,8 @@ def update_table(selected_db, groupby_clicks, reset_clicks, groupby_columns, num
     # Resetear todos los valores cuando se haga clic en el botón de reset
     if ctx.triggered and ctx.triggered[0]['prop_id'] == 'reset-button.n_clicks':
         filtered_df = df
-        months = df.groupby('DB')['mes'].unique().reset_index()
-        brands = df.groupby('MARCA')['DB'].unique().reset_index()
+        months = df.groupby('CLIENTE')['mes'].unique().reset_index()
+        brands = df.groupby('MARCA')['CLIENTE'].unique().reset_index()
         months_table = create_months_table(months)
         brands_table = create_brands_table(brands, [])
         return filtered_df.to_dict('records'), [{"name": i, "id": i} for i in df.columns], months_table, brands_table, [], [], []
@@ -163,12 +168,12 @@ def update_table(selected_db, groupby_clicks, reset_clicks, groupby_columns, num
     # Si no se hace clic en reset, seguir con el flujo normal
     if selected_db is None or len(selected_db) == 0:
         filtered_df = df
-        months = df.groupby('DB')['mes'].unique().reset_index()
-        brands = df.groupby('MARCA')['DB'].unique().reset_index()
+        months = df.groupby('CLIENTE')['mes'].unique().reset_index()
+        brands = df.groupby('MARCA')['CLIENTE'].unique().reset_index()
     else:
-        filtered_df = df[df['DB'].isin(selected_db)]
-        months = filtered_df.groupby('DB')['mes'].unique().reset_index()
-        brands = df.groupby('MARCA')['DB'].unique().reset_index()  # Mantener todas las marcas
+        filtered_df = df[df['CLIENTE'].isin(selected_db)]
+        months = filtered_df.groupby('CLIENTE')['mes'].unique().reset_index()
+        brands = df.groupby('MARCA')['CLIENTE'].unique().reset_index()  # Mantener todas las marcas
 
     if groupby_columns and numeric_columns and groupby_clicks:
         if groupby_columns and numeric_columns:
@@ -187,15 +192,17 @@ def create_months_table(months):
     table_data = []
 
     for _, row in months.iterrows():
-        db = row['DB']
+        db = row['CLIENTE']
         present_months = row['mes']
-        row_data = {'DB': db}
+        row_data = {'CLIENTE': db}
         for month in month_cols:
-            row_data[month] = '✓' if month in present_months else ''
+            #row_data[month] = '✓' if month in present_months else ''
+            # en vez de palomita sera la suma de la "CANTIDAD"
+            row_data[month] = df[(df['CLIENTE'] == db) & (df['mes'] == month)]['CANTIDAD'].sum()
         table_data.append(row_data)
 
     months_table = dash_table.DataTable(
-        columns=[{'name': 'DB', 'id': 'DB'}] + [{'name': str(month), 'id': str(month)} for month in month_cols],
+        columns=[{'name': 'CLIENTE', 'id': 'CLIENTE'}] + [{'name': str(month), 'id': str(month)} for month in month_cols],
         data=table_data,
         style_table={'overflowX': 'auto'},
         style_cell={'textAlign': 'center', 'fontSize': '12px'}
@@ -203,15 +210,17 @@ def create_months_table(months):
     return months_table
 
 def create_brands_table(brands, selected_db):
-    db_cols = df['DB'].unique() if selected_db is None or len(selected_db) == 0 else selected_db
+    db_cols = df['CLIENTE'].unique() if selected_db is None or len(selected_db) == 0 else selected_db
     table_data = []
 
     for _, row in brands.iterrows():
         marca = row['MARCA']
-        present_dbs = row['DB']
+        present_dbs = row['CLIENTE']
         row_data = {'MARCA': marca}
         for db in db_cols:
-            row_data[db] = '✓' if db in present_dbs else ''
+            #row_data[db] = '✓' if db in present_dbs else ''
+            # en vez de palomita sera la suma de la "CANTIDAD"
+            row_data[db] = df[(df['MARCA'] == marca) & (df['CLIENTE'] == db)]['CANTIDAD'].sum()
         table_data.append(row_data)
 
     brands_table = dash_table.DataTable(
