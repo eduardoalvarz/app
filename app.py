@@ -198,7 +198,7 @@ def create_months_table(months):
         for month in month_cols:
             #row_data[month] = '✓' if month in present_months else ''
             # en vez de palomita sera la suma de la "CANTIDAD"
-            row_data[month] = df[(df['CLIENTE'] == db) & (df['mes'] == month)]['CANTIDAD'].sum()
+            row_data[month] = df[(df['CLIENTE'] == db) & (df['mes'] == month)]['CANTIDAD'].sum() if month in present_months else ''
         table_data.append(row_data)
 
     months_table = dash_table.DataTable(
@@ -220,7 +220,7 @@ def create_brands_table(brands, selected_db):
         for db in db_cols:
             #row_data[db] = '✓' if db in present_dbs else ''
             # en vez de palomita sera la suma de la "CANTIDAD"
-            row_data[db] = df[(df['MARCA'] == marca) & (df['CLIENTE'] == db)]['CANTIDAD'].sum()
+            row_data[db] = df[(df['MARCA'] == marca) & (df['CLIENTE'] == db)]['CANTIDAD'].sum() if db in present_dbs else ''
         table_data.append(row_data)
 
     brands_table = dash_table.DataTable(
