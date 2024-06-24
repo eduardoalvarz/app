@@ -114,7 +114,8 @@ app.layout = dbc.Container(
                                         'backgroundColor': 'white',
                                         'color': 'black',
                                         'fontSize': '12px'
-                                    }
+                                    },
+                                    sort_action='native'
                                 ),
                                 width=12
                             )
@@ -205,7 +206,8 @@ def create_months_table(months):
         columns=[{'name': 'CLIENTE', 'id': 'CLIENTE'}] + [{'name': str(month), 'id': str(month)} for month in month_cols],
         data=table_data,
         style_table={'overflowX': 'auto'},
-        style_cell={'textAlign': 'center', 'fontSize': '12px'}
+        style_cell={'textAlign': 'center', 'fontSize': '12px'},
+        sort_action='native'
     )
     return months_table
 
@@ -227,7 +229,8 @@ def create_brands_table(brands, selected_db):
         columns=[{'name': 'MARCA', 'id': 'MARCA'}] + [{'name': str(db), 'id': str(db)} for db in db_cols],
         data=table_data,
         style_table={'overflowX': 'auto'},
-        style_cell={'textAlign': 'center', 'fontSize': '12px'}
+        style_cell={'textAlign': 'center', 'fontSize': '12px'},
+        sort_action='native'
     )
     return brands_table
 
