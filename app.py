@@ -4,7 +4,8 @@ import pandas as pd
 import dash_bootstrap_components as dbc
 
 # Leer el archivo de Excel
-df = pd.read_excel('full_piv.xlsx')
+# df = pd.read_excel('full_piv_test.xlsx')
+df = pd.read_excel('full_piv_test.xlsx')
 
 # Renombramos la columna "DB" a "CLIENTE"
 df.rename(columns={'DB': 'CLIENTE'}, inplace=True)
@@ -19,7 +20,8 @@ columns = df.columns
 numeric_columns = ['CANTIDAD']
 
 # Inicializar la aplicación Dash con Bootstrap
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+external_stylesheets = [dbc.themes.BOOTSTRAP, 'https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css']
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 # Definir el layout de la aplicación
 app.layout = dbc.Container(
@@ -29,13 +31,14 @@ app.layout = dbc.Container(
             [
                 dbc.Col(
                     [
-                        html.H2("COOP", className="display-4", style={'textAlign': 'center', 'color': '#000', 'marginBottom': '30px'}),
+                        html.Img(src='https://ii.ct-stc.com/2/logos/empresas/2023/03/03/571ea8d48fe24e68a2d4191050222thumbnail.png', 
+                                 className="animate__animated animate__fadeInDown", 
+                                 style={'display': 'block', 'marginLeft': 'auto', 'marginRight': 'auto', 'width': '80%', 'marginBottom': '30px'}),
                         html.Hr(),
                         dbc.Nav(
                             [
-                                # dbc.NavLink("Home", href="#", active="exact"),
-                                # dbc.NavLink("Analytics", href="#", active="exact"),
-                                # dbc.NavLink("Reports", href="#", active="exact"),
+                                dbc.NavLink("Home", href="#", active="exact", className="animate__animated animate__fadeInLeft"),
+                                dbc.NavLink("Analytics", href="#", active="exact", className="animate__animated animate__fadeInLeft")
                             ],
                             vertical=True,
                             pills=True,
@@ -51,11 +54,13 @@ app.layout = dbc.Container(
                                 dcc.Dropdown(
                                     id='db-filter',
                                     options=[{'label': db, 'value': db} for db in unique_db],
-                                    placeholder='Select a CLIENTE',
+                                    placeholder='Select a DB',
                                     multi=True,
-                                    style={'marginBottom': '20px', 'fontSize': '14px'}
+                                    className="animate__animated animate__fadeInRight",
+                                    style={'marginBottom': '20px', 'fontSize': '14px', 'zIndex': 1050}
                                 ),
-                                width=12
+                                width=12,
+                                style={'position': 'relative', 'zIndex': 1050}
                             )
                         ),
                         dbc.Row(
@@ -66,9 +71,11 @@ app.layout = dbc.Container(
                                         options=[{'label': col, 'value': col} for col in columns],
                                         placeholder='Select columns to group by',
                                         multi=True,
-                                        style={'marginBottom': '20px', 'fontSize': '14px'}
+                                        className="animate__animated animate__fadeInRight",
+                                        style={'marginBottom': '20px', 'fontSize': '14px', 'zIndex': 1040}
                                     ),
-                                    width=6
+                                    width=6,
+                                    style={'position': 'relative', 'zIndex': 1040}
                                 ),
                                 dbc.Col(
                                     dcc.Dropdown(
@@ -76,46 +83,54 @@ app.layout = dbc.Container(
                                         options=[{'label': col, 'value': col} for col in numeric_columns],
                                         placeholder='Select numeric columns for metrics',
                                         multi=True,
-                                        style={'marginBottom': '20px', 'fontSize': '14px'}
+                                        className="animate__animated animate__fadeInRight",
+                                        style={'marginBottom': '20px', 'fontSize': '14px', 'zIndex': 1030}
                                     ),
-                                    width=6
+                                    width=6,
+                                    style={'position': 'relative', 'zIndex': 1030}
                                 ),
                             ]
                         ),
                         dbc.Row(
                             [
-                                dbc.Col(dbc.Button('Generate Grouped Table', id='groupby-button', color='dark', className='mr-2', style={'fontSize': '14px'}), width="auto"),
-                                dbc.Col(dbc.Button('Reset', id='reset-button', color='secondary', style={'fontSize': '14px'}), width="auto")
+                                dbc.Col(dbc.Button('Generate Grouped Table', id='groupby-button', color='dark', className='mr-2 animate__animated animate__fadeInRight', style={'fontSize': '14px', 'zIndex': 1020}), width="auto"),
+                                dbc.Col(dbc.Button('Reset', id='reset-button', color='secondary', className='animate__animated animate__fadeInRight', style={'fontSize': '14px', 'zIndex': 1020}), width="auto")
                             ],
                             className="mb-4"
                         ),
                         dbc.Row(
                             [
-                                dbc.Col(html.Div(id='db-months', style={'fontSize': '14px'}), width=6),
-                                dbc.Col(html.Div(id='brand-db', style={'fontSize': '14px'}), width=6)
+                                dbc.Col(html.Div(id='db-months', className='animate__animated animate__fadeInUp', style={'fontSize': '14px'}), width=6),
+                                dbc.Col(html.Div(id='brand-db', className='animate__animated animate__fadeInUp', style={'fontSize': '14px'}), width=6)
                             ],
                             className="mb-4 justify-content-center"
                         ),
                         dbc.Row(
                             dbc.Col(
-                                dash_table.DataTable(
-                                    id='table',
-                                    columns=[{"name": i, "id": i} for i in df.columns],
-                                    data=df.to_dict('records'),
-                                    style_table={'overflowX': 'auto'},
-                                    style_cell={'textAlign': 'left', 'fontSize': '12px'},
-                                    page_size=20,
-                                    style_header={
-                                        'backgroundColor': 'black',
-                                        'color': 'white',
-                                        'fontSize': '12px'
-                                    },
-                                    style_data={
-                                        'backgroundColor': 'white',
-                                        'color': 'black',
-                                        'fontSize': '12px'
-                                    },
-                                    sort_action='native'
+                                dcc.Loading(
+                                    id="loading-table",
+                                    type="circle",
+                                    children=html.Div(
+                                        dash_table.DataTable(
+                                            id='table',
+                                            columns=[{"name": i, "id": i} for i in df.columns],
+                                            data=df.to_dict('records'),
+                                            style_table={'overflowX': 'auto'},
+                                            style_cell={'textAlign': 'left', 'fontSize': '12px'},
+                                            page_size=20,
+                                            style_header={
+                                                'backgroundColor': 'black',
+                                                'color': 'white',
+                                                'fontSize': '12px'
+                                            },
+                                            style_data={
+                                                'backgroundColor': 'white',
+                                                'color': 'black',
+                                                'fontSize': '12px'
+                                            }
+                                        ),
+                                        className="animate__animated animate__fadeInUp"
+                                    ),
                                 ),
                                 width=12
                             )
@@ -123,11 +138,11 @@ app.layout = dbc.Container(
                         dbc.Row(
                             dbc.Col(
                                 [
-                                    dbc.Button("Download CSV", id="btn-download-csv", color='dark', className='mt-4', style={'fontSize': '14px'}),
+                                    dbc.Button("Download CSV", id="btn-download-csv", color='dark', className='mt-4 animate__animated animate__fadeInUp', style={'fontSize': '14px'}),
                                     dcc.Download(id="download-csv")
                                 ],
                                 width=12,
-                                className="text-center"
+                                className="text-center animate__animated animate__fadeInUp"
                             )
                         )
                     ],
