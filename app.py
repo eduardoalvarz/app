@@ -5,7 +5,7 @@ import dash_bootstrap_components as dbc
 
 # Leer el archivo de Excel
 # df = pd.read_excel('full_piv_test.xlsx')
-df = pd.read_excel('full_piv_test.xlsx')
+df = pd.read_excel('/Users/eduardo/Documents/git/app/full_piv.xlsx')
 
 # Renombramos la columna "DB" a "CLIENTE"
 df.rename(columns={'DB': 'CLIENTE'}, inplace=True)
